@@ -76,6 +76,12 @@ await page.waitForTimeout(100);
 const numeric = await page.locator('#add .coord-group').count();
 ok('secp256k1 shows numeric coordinate boxes', numeric >= 2);
 ok('copy buttons present for big coords', (await page.locator('#add .copy-btn').count()) >= 2);
+ok(
+  'lattice P/Q menus hidden in secp256k1 mode',
+  !(await page.locator('#add select[aria-label="Point P"]').isVisible()),
+);
+ok('secp256k1 hides the lattice canvas', !(await page.locator('#add .grid-canvas').isVisible()));
+ok('no stray empty warn bar', !(await page.locator('#scalar .warn').isVisible()));
 
 // Mobile: no horizontal overflow.
 await page.setViewportSize({ width: 375, height: 760 });

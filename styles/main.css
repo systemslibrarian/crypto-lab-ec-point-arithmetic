@@ -45,6 +45,12 @@
   box-sizing: border-box;
 }
 
+/* The [hidden] attribute must win over explicit display rules (e.g. flex/block),
+   otherwise toggled controls — warn bar, secp picker, bit tape — never hide. */
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   background: var(--bg);
