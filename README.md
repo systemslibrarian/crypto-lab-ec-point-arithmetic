@@ -29,6 +29,12 @@ npm run dev
 
 There are no environment variables. `npm test` runs the Vitest suite (field arithmetic, the real and finite-field group laws, double-and-add vs. naive equivalence, and the secp256k1 cross-check against `@noble/curves`); `npm run build` typechecks and produces the static `dist/`.
 
+## Related Demos
+
+- [crypto-lab-curve-lens](https://systemslibrarian.github.io/crypto-lab-curve-lens/) — the next step: finite-field point clouds, curve comparison, a real ECDLP brute-forcer, and live ECDH across P-256, Curve25519, and secp256k1.
+- [crypto-lab-ecdsa-forge](https://systemslibrarian.github.io/crypto-lab-ecdsa-forge/) — what the group law is used for: ECDSA signing, verification, and nonce-reuse forgery.
+- [crypto-lab-ed25519-forge](https://systemslibrarian.github.io/crypto-lab-ed25519-forge/) — EdDSA on the twisted-Edwards form of the same idea.
+
 ## Part of the Crypto-Lab Suite
 
 > One of 60+ live browser demos at
