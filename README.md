@@ -27,7 +27,7 @@ npm install
 npm run dev
 ```
 
-There are no environment variables. `npm test` runs the Vitest suite (field arithmetic, the real and finite-field group laws, double-and-add vs. naive equivalence, and the secp256k1 cross-check against `@noble/curves`); `npm run build` typechecks and produces the static `dist/`.
+There are no environment variables. `npm test` runs the Vitest suite (field arithmetic, the real and finite-field group laws, double-and-add vs. naive equivalence, and the secp256k1 cross-check against `@noble/curves`); `npm run build` typechecks and produces the static `dist/`. An optional `npm run smoke` drives a real browser over the built site (canvas rendering, the core interactions, mobile layout); it needs a local Chromium/Edge and `npm i -D playwright`, and is kept out of CI to stay light.
 
 ## Related Demos
 

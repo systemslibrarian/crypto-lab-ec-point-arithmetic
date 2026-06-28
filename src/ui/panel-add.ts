@@ -7,7 +7,13 @@
 // mental model.
 
 import { addConstruction, isSingular, rhs } from '../math/curve-real';
-import { add as fpAdd, enumeratePoints, isOnCurve } from '../math/curve-fp';
+import {
+  add as fpAdd,
+  enumeratePoints,
+  isOnCurve,
+  negate as fpNegate,
+  scalarMul,
+} from '../math/curve-fp';
 import { FP_PRESETS, REAL_PRESETS, realPointAtX, type FpPreset } from '../math/curves';
 import { mod, modInv } from '../math/field';
 import { FieldGridRenderer } from '../render/field-grid';
@@ -17,8 +23,9 @@ import { el, onResize } from './dom';
 
 const fmt = (n: number) => (Object.is(n, -0) ? 0 : n).toFixed(3);
 
-// Only the plottable finite-field curves are interactive here.
-const FP_PLOTTABLE = FP_PRESETS.filter((p) => p.plottable);
+// All finite-field presets are offered. Plottable ones (small p) use the lattice;
+// secp256k1 is too large to draw, so it gets a numeric, copyable point-add reveal.
+const FP_LIST = FP_PRESETS;
 
 export function panelAdd(): HTMLElement {
   // ── Real-world state ──────────────────────────────────────────────────────
@@ -32,8 +39,8 @@ export function panelAdd(): HTMLElement {
 
   // ── Finite-field state ────────────────────────────────────────────────────
   let fpIdx = 0;
-  let fpCurve: FpCurve = FP_PLOTTABLE[fpIdx].curve;
-  let fpP: FpPoint = FP_PLOTTABLE[fpIdx].G ?? null;
+  let fpCurve: FpCurve = FP_LIST[fpIdx].curve;
+  let fpP: FpPoint = FP_LIST[fpIdx].G ?? null;
   let fpQ: FpPoint = null;
   let nextClick: 'p' | 'q' = 'q';
 
@@ -69,7 +76,7 @@ export function panelAdd(): HTMLElement {
   const curveSelectFp = el(
     'select',
     { 'aria-label': 'Finite-field curve' },
-    FP_PLOTTABLE.map((p, i) => el('option', { value: String(i) }, [p.label])),
+    FP_LIST.map((p, i) => el('option', { value: String(i) }, [p.label])),
   ) as HTMLSelectElement;
 
   const realView = el('div', { class: 'mode-view' });
@@ -185,10 +192,24 @@ export function panelAdd(): HTMLElement {
   }
 
   function drawFp() {
-    if (!grid) return;
-    const c = fpConstruction(fpCurve, fpP, fpQ);
-    grid.draw({ p: fpP, q: fpQ, sum: c.sum, thirdIntersection: c.third });
-    fpReadout.replaceChildren(renderFpReadout(fpCurve, fpP, fpQ));
+    const plottable = FP_LIST[fpIdx].plottable;
+    if (plottable) {
+      if (!grid) return;
+      const c = fpConstruction(fpCurve, fpP, fpQ);
+      grid.draw({ p: fpP, q: fpQ, sum: c.sum, thirdIntersection: c.third });
+      fpReadout.replaceChildren(renderFpReadout(fpCurve, fpP, fpQ));
+    } else {
+      // secp256k1: no lattice (too large to enumerate), exact numeric readout.
+      fpReadout.replaceChildren(renderFpNumeric(fpCurve, fpP, fpQ));
+    }
+  }
+
+  /** Show the lattice controls for small curves, the numeric controls for secp256k1. */
+  function updateFpMode() {
+    const plottable = FP_LIST[fpIdx].plottable;
+    for (const elm of [fpCanvas, fpHint, fpPickers, fpExamplesGroup, fpLatticeNote])
+      elm.hidden = !plottable;
+    for (const elm of [fpPresetWrap, fpNumericNote]) elm.hidden = plottable;
   }
 
   fpSelP.addEventListener('change', () => {
@@ -254,13 +275,21 @@ export function panelAdd(): HTMLElement {
 
   curveSelectFp.addEventListener('change', () => {
     fpIdx = Number(curveSelectFp.value);
-    const preset: FpPreset = FP_PLOTTABLE[fpIdx];
+    const preset: FpPreset = FP_LIST[fpIdx];
     fpCurve = preset.curve;
-    fpP = preset.G ?? null;
-    fpQ = null;
     nextClick = 'q';
-    grid?.setCurve(fpCurve);
-    populateFpSelects();
+    if (preset.plottable) {
+      fpP = preset.G ?? null;
+      fpQ = null;
+      grid?.setCurve(fpCurve); // safe: small p, enumerates the lattice
+      populateFpSelects();
+    } else {
+      // secp256k1: never enumerate. Default to a clear, exact example: G and 2G.
+      fpP = preset.G ?? null;
+      fpQ = preset.G ? scalarMul(fpCurve, 2n, preset.G) : null;
+      buildFpPresetButtons();
+    }
+    updateFpMode();
     drawFp();
   });
 
@@ -306,6 +335,45 @@ export function panelAdd(): HTMLElement {
     return realPointAtX(realCurve, (x0 + x1) / 2);
   }
 
+  const setDoubling = (on: boolean) => {
+    doubling = on;
+    (doubleChk.querySelector('input') as HTMLInputElement).checked = on;
+  };
+
+  // The real root of x³ + ax + b = 0 — a point with y = 0, i.e. a 2-torsion
+  // point whose tangent is vertical, so 2P = O. Newton from the left of the range.
+  function realRootY0(): number | null {
+    const [lo, hi] = REAL_PRESETS[realIdx].xRange;
+    let x = lo;
+    for (let i = 0; i < 80; i += 1) {
+      const f = x * x * x + realCurve.a * x + realCurve.b;
+      const df = 3 * x * x + realCurve.a;
+      if (Math.abs(df) < 1e-9) {
+        x += 0.1;
+        continue;
+      }
+      x -= f / df;
+    }
+    const onCurve = Math.abs(x * x * x + realCurve.a * x + realCurve.b) < 1e-6;
+    return onCurve && x >= lo && x <= hi ? x : null;
+  }
+
+  // One-click edge-case examples (real plane) — each a feature of the group.
+  const realExamples = el('div', { class: 'chips' }, [
+    chip('Tangent (P = Q)', () => {
+      setDoubling(true);
+      drawReal();
+    }),
+    chip('P + (−P) = O', showVerticalDemo),
+    chip('2P = O (y = 0)', () => {
+      const root = realRootY0();
+      if (root === null) return;
+      P = { x: root, y: 0 };
+      setDoubling(true);
+      drawReal();
+    }),
+  ]);
+
   const fpHint = el('p', { class: 'hint' }, [
     'Click a lattice point (it fills P, then Q), or pick P and Q from the menus below — both work with the keyboard.',
   ]);
@@ -313,6 +381,76 @@ export function panelAdd(): HTMLElement {
     labelled('P', fpSelP),
     labelled('Q', fpSelQ),
   ]);
+
+  // Edge-case examples for the finite field (small curves only).
+  const fpExamples = el('div', { class: 'chips' }, [
+    chip('P + O = P', () => {
+      fpQ = null;
+      syncFpSelects();
+      drawFp();
+    }),
+    chip('P + (−P) = O', () => {
+      if (fpP) fpQ = fpNegate(fpCurve, fpP);
+      syncFpSelects();
+      drawFp();
+    }),
+    chip('Doubling (P = Q)', () => {
+      fpQ = fpP;
+      syncFpSelects();
+      drawFp();
+    }),
+  ]);
+  const fpExamplesGroup = el('div', { class: 'examples-group' }, [
+    el('div', { class: 'chips-label' }, ['Examples:']),
+    fpExamples,
+  ]);
+
+  const fpLatticeNote = el('p', { class: 'note' }, [
+    'Same group law — but every coordinate is reduced mod p, so the smooth curve becomes a ',
+    'scatter of points and the “line” wraps around. The algebra below is identical to the ℝ case.',
+  ]);
+
+  // secp256k1 numeric mode: preset point buttons + an explanatory note.
+  const fpPresetWrap = el('div', { class: 'fp-presets', hidden: true });
+  const fpNumericNote = el('p', { class: 'note', hidden: true }, [
+    'secp256k1 is far too large to draw as a lattice — but the ',
+    el('strong', {}, ['same exact formulas']),
+    ' run here in 256-bit integers. Choose preset points and read the result below.',
+  ]);
+  function buildFpPresetButtons() {
+    const G = FP_LIST[fpIdx].G;
+    if (!G) {
+      fpPresetWrap.replaceChildren();
+      return;
+    }
+    const pts: [string, FpPoint][] = [
+      ['G', G],
+      ['2G', scalarMul(fpCurve, 2n, G)],
+      ['3G', scalarMul(fpCurve, 3n, G)],
+      ['−G', fpNegate(fpCurve, G)],
+      ['O', null],
+    ];
+    const row = (which: 'p' | 'q') =>
+      el('div', { class: 'control-row' }, [
+        el('span', { class: 'preset-label' }, [`Set ${which.toUpperCase()}:`]),
+        ...pts.map(([lab, pt]) =>
+          el(
+            'button',
+            {
+              class: 'btn small-btn',
+              type: 'button',
+              onclick: () => {
+                if (which === 'p') fpP = pt;
+                else fpQ = pt;
+                drawFp();
+              },
+            },
+            [lab],
+          ),
+        ),
+      ]);
+    fpPresetWrap.replaceChildren(row('p'), row('q'));
+  }
 
   // ── Assemble ──────────────────────────────────────────────────────────────
   realView.append(
@@ -328,6 +466,8 @@ export function panelAdd(): HTMLElement {
         el('div', { class: 'control-row' }, [randomBtn, resetBtn, invBtn]),
         doubleChk,
         inverseChk,
+        el('div', { class: 'chips-label' }, ['Examples:']),
+        realExamples,
         realReadout,
       ]),
     ]),
@@ -335,14 +475,13 @@ export function panelAdd(): HTMLElement {
 
   fpView.append(
     el('div', { class: 'panel-body' }, [
-      el('div', { class: 'canvas-wrap' }, [fpCanvas, fpHint]),
+      el('div', { class: 'canvas-wrap' }, [fpCanvas, fpHint, fpNumericNote]),
       el('div', { class: 'aside' }, [
         el('div', { class: 'control-row' }, [labelled('Curve', curveSelectFp)]),
         fpPickers,
-        el('p', { class: 'note' }, [
-          'Same group law — but every coordinate is reduced mod p, so the smooth curve becomes a ',
-          'scatter of points and the “line” wraps around. The algebra below is identical to the ℝ case.',
-        ]),
+        fpPresetWrap,
+        fpExamplesGroup,
+        fpLatticeNote,
         fpReadout,
       ]),
     ]),
@@ -372,6 +511,7 @@ export function panelAdd(): HTMLElement {
     plane = new PlaneRenderer(realCanvas, realCurve, REAL_PRESETS[realIdx].xRange);
     grid = new FieldGridRenderer(fpCanvas, fpCurve);
     populateFpSelects();
+    updateFpMode();
     drawReal();
     drawFp();
     onResize(section, () => {
@@ -502,4 +642,67 @@ function segButton(label: string, on: boolean, onClick: () => void): HTMLElement
     },
     [label],
   );
+}
+function chip(label: string, onClick: () => void): HTMLElement {
+  return el('button', { class: 'chip-btn', type: 'button', onclick: onClick }, [label]);
+}
+
+// ── secp256k1 numeric readout (no lattice; exact 256-bit coordinates, copyable) ──
+
+function renderFpNumeric(curve: FpCurve, P: FpPoint, Q: FpPoint): HTMLElement {
+  const rows: (Node | string)[] = [coordBox('P', P), coordBox('Q', Q)];
+  if (!P || !Q) {
+    rows.push(coordBox('P + Q', P ?? Q)); // P + O = P, O + Q = Q
+    return el('div', { class: 'readout-inner' }, rows);
+  }
+  const { p } = curve;
+  if (P.x === Q.x && mod(P.y + Q.y, p) === 0n) {
+    rows.push(
+      el('div', { class: 'result' }, [
+        el('span', { class: 'res-icon' }, ['✓']),
+        el('div', {}, [el('div', { class: 'res-main mono' }, ['P + Q = O (point at infinity)'])]),
+      ]),
+    );
+    return el('div', { class: 'readout-inner' }, rows);
+  }
+  rows.push(coordBox('P + Q', fpAdd(curve, P, Q), true));
+  return el('div', { class: 'readout-inner' }, rows);
+}
+
+function coordBox(label: string, pt: FpPoint, isResult = false): HTMLElement {
+  if (!pt) {
+    return el('div', { class: isResult ? 'coord-group result-coord' : 'coord-group' }, [
+      el('span', { class: 'coord-group-label' }, [label]),
+      el('code', { class: 'mono' }, ['O (point at infinity)']),
+    ]);
+  }
+  return el('div', { class: isResult ? 'coord-group result-coord' : 'coord-group' }, [
+    el('span', { class: 'coord-group-label' }, [label]),
+    bigCoord('x', pt.x.toString()),
+    bigCoord('y', pt.y.toString()),
+  ]);
+}
+
+function bigCoord(name: string, value: string): HTMLElement {
+  return el('div', { class: 'coord' }, [
+    el('span', { class: 'coord-name' }, [name]),
+    el('code', { class: 'coord-val mono', tabindex: '0' }, [value]),
+    el(
+      'button',
+      {
+        class: 'copy-btn',
+        type: 'button',
+        title: 'Copy',
+        'aria-label': `Copy ${name} coordinate`,
+        onclick: (e) => {
+          navigator.clipboard?.writeText(value);
+          const b = e.currentTarget as HTMLButtonElement;
+          const prev = b.textContent;
+          b.textContent = '✓';
+          setTimeout(() => (b.textContent = prev), 1000);
+        },
+      },
+      ['⧉'],
+    ),
+  ]);
 }

@@ -370,6 +370,210 @@ input[type='text'] {
   color: #ffb84d;
 }
 
+/* Scalar result card + bit tape + comparison */
+.result-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-2);
+  font-size: 0.92rem;
+}
+.result-card.ready {
+  color: var(--text-muted);
+}
+.result-card.progress {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+.result-card.done {
+  border-color: var(--success);
+}
+.rc-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+.result-card.done .rc-label {
+  color: var(--text);
+}
+
+.bit-tape {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+}
+.bt-label {
+  color: var(--text-muted);
+  margin-right: 0.2rem;
+}
+.bt-bit {
+  display: inline-grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: ui-monospace, monospace;
+  color: var(--text-muted);
+}
+.bt-bit.done {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+}
+.bt-bit.cur {
+  color: #0d0a1f;
+  background: var(--accent);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+.cmp-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  background: var(--panel-2);
+}
+.cmp-card.sel {
+  border-color: var(--accent);
+}
+.cmp-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+.cmp-cost {
+  font-size: 0.9rem;
+  margin-top: 0.15rem;
+}
+.cmp-live {
+  font-size: 0.78rem;
+  color: var(--accent);
+  margin-top: 0.2rem;
+}
+
+/* Edge-case example chips */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.25rem 0 0.75rem;
+}
+.chip-btn {
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: transparent;
+  color: var(--text);
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.chip-btn:hover {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-color: var(--accent);
+}
+.chip-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.chips-label,
+.examples-group .chips-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0.5rem 0 0.1rem;
+}
+
+/* secp256k1 preset buttons + copyable coordinate boxes */
+.fp-presets {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0.25rem 0 0.75rem;
+}
+.preset-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  min-width: 3.2rem;
+}
+.small-btn {
+  padding: 0.25rem 0.55rem;
+  font-size: 0.82rem;
+}
+.coord-group {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.6rem;
+  margin-bottom: 0.5rem;
+  background: var(--panel-2);
+}
+.coord-group.result-coord {
+  border-color: var(--success);
+}
+.coord-group-label {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 0.3rem;
+}
+.coord {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+}
+.coord-name {
+  flex: 0 0 1rem;
+  color: var(--text-muted);
+  font-family: ui-monospace, monospace;
+  font-size: 0.8rem;
+}
+.coord-val {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding: 0.25rem 0.4rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+.coord-val:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.copy-btn {
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 0.25rem 0.45rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.copy-btn:hover {
+  border-color: var(--accent);
+}
+.copy-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 /* ECDLP panel */
 .ecdlp-status .found {
   color: var(--success);

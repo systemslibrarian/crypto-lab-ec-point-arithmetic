@@ -5,6 +5,7 @@
 // visible. Small p only (the toggle hides this for secp256k1).
 
 import { enumeratePoints } from '../math/curve-fp';
+import { mod, modInv } from '../math/field';
 import type { FpCurve, FpPoint } from '../math/types';
 import { palette } from '../ui/dom';
 
@@ -13,6 +14,33 @@ export interface GridState {
   q: FpPoint;
   sum: FpPoint;
   thirdIntersection: FpPoint;
+}
+
+/** The residue-class line through P and Q over 𝔽_p, as one cell per column.
+ *  Returns the set of (x, y) the line passes through (it "wraps" mod p), plus a
+ *  flag for the vertical case. Empty when P or Q is the identity. */
+function modularLine(
+  curve: FpCurve,
+  P: FpPoint,
+  Q: FpPoint,
+): { cells: { x: bigint; y: bigint }[]; vertical: boolean; verticalX: bigint } {
+  if (!P || !Q) return { cells: [], vertical: false, verticalX: 0n };
+  const { a, p } = curve;
+  // Vertical line: same x, negated y (or doubling a y=0 point).
+  if (P.x === Q.x && mod(P.y + Q.y, p) === 0n) {
+    return { cells: [], vertical: true, verticalX: P.x };
+  }
+  let lambda: bigint;
+  if (P.x === Q.x && P.y === Q.y) {
+    lambda = mod((3n * P.x * P.x + a) * modInv(2n * P.y, p), p);
+  } else {
+    lambda = mod((Q.y - P.y) * modInv(Q.x - P.x, p), p);
+  }
+  const cells: { x: bigint; y: bigint }[] = [];
+  for (let x = 0n; x < p; x += 1n) {
+    cells.push({ x, y: mod(lambda * (x - P.x) + P.y, p) });
+  }
+  return { cells, vertical: false, verticalX: 0n };
 }
 
 export class FieldGridRenderer {
@@ -95,21 +123,43 @@ export class FieldGridRenderer {
       ctx.stroke();
     }
 
+    // The residue-class line through P and Q — drawn first, faintly, as small
+    // ticks so the "wrapped chord" is visible behind the points it meets.
+    const line = modularLine(this.curve, state.p, state.q);
+    ctx.fillStyle = pal.accent;
+    for (const cell of line.cells) {
+      const [lx, ly] = this.cellXY(cell.x, cell.y);
+      ctx.globalAlpha = 0.35;
+      ctx.beginPath();
+      ctx.arc(lx, ly, Math.max(1.5, this.cell * 0.12), 0, Math.PI * 2);
+      ctx.fill();
+    }
+    if (line.vertical) {
+      const [vx, top] = this.cellXY(line.verticalX, BigInt(p - 1));
+      const [, bot] = this.cellXY(line.verticalX, 0n);
+      ctx.globalAlpha = 0.5;
+      ctx.strokeStyle = pal.muted;
+      ctx.setLineDash([4, 4]);
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(vx, top - this.cell * 0.5);
+      ctx.lineTo(vx, bot + this.cell * 0.5);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    ctx.globalAlpha = 1;
+
     // All curve points.
     for (const pt of this.points) this.dot(pt, pal.curve, 0.42);
 
-    // Highlights.
-    const mark = (pt: FpPoint, color: string, ring = false) => {
-      if (!pt) return;
-      this.dot(pt, color, 0.7, ring);
-    };
-    mark(state.thirdIntersection, pal.muted, true);
-    mark(state.sum, pal.success);
-    mark(state.q, pal.accent2);
-    mark(state.p, pal.accent);
+    // Highlights, with labels so the construction reads without the side panel.
+    this.dot(state.thirdIntersection, pal.muted, 0.7, true, '−(P+Q)');
+    this.dot(state.sum, pal.success, 0.7, false, 'P+Q');
+    this.dot(state.q, pal.accent2, 0.7, false, 'Q');
+    this.dot(state.p, pal.accent, 0.7, false, 'P');
   }
 
-  private dot(pt: FpPoint, color: string, scale: number, ring = false) {
+  private dot(pt: FpPoint, fill: string, scale: number, ring = false, label?: string) {
     if (!pt) return;
     const ctx = this.ctx;
     if (!ctx) return;
@@ -121,11 +171,16 @@ export class FieldGridRenderer {
       ctx.fillStyle = palette().panel;
       ctx.fill();
       ctx.lineWidth = 2;
-      ctx.strokeStyle = color;
+      ctx.strokeStyle = fill;
       ctx.stroke();
     } else {
-      ctx.fillStyle = color;
+      ctx.fillStyle = fill;
       ctx.fill();
+    }
+    if (label) {
+      ctx.fillStyle = fill;
+      ctx.font = '600 11px ui-sans-serif, system-ui, sans-serif';
+      ctx.fillText(label, sx + r + 2, sy - r);
     }
   }
 }
