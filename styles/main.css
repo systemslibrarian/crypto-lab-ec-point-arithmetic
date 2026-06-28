@@ -1,0 +1,444 @@
+/* Elliptic Curve Point Arithmetic — demo styles.
+   Dark is the default palette (:root); light overrides live under
+   :root[data-theme="light"] so the shared-header toggle (added by the Parts 0+A
+   standardization pass) restyles the page correctly. --accent is defined in BOTH
+   palettes so the always-dark shared header tints to this lab's color, not teal. */
+
+:root {
+  --accent: #9f88ff;
+  --accent-2: #35d6bb;
+
+  --bg: #0d1218;
+  --panel: #141b22;
+  --panel-2: #1b2531;
+  --border: #25303d;
+  --text: #e8edf2;
+  --text-muted: #8a97a6;
+
+  --grid: #1f2a36;
+  --axis: #3a4a5c;
+  --curve: #aeb9c6;
+  --success: #4ade80;
+
+  --radius: 12px;
+  --maxw: 980px;
+}
+
+:root[data-theme='light'] {
+  --accent: #6b4ef0;
+  --accent-2: #0e9c86;
+
+  --bg: #f6f1e7;
+  --panel: #fffdf8;
+  --panel-2: #f0ead9;
+  --border: #ddd3bf;
+  --text: #1c2530;
+  --text-muted: #5d6b78;
+
+  --grid: #e6ddca;
+  --axis: #b3a888;
+  --curve: #5a6675;
+  --success: #15803d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font:
+    16px/1.6 ui-sans-serif,
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    sans-serif;
+}
+
+#app {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 4rem;
+}
+
+.page-head {
+  padding: 1.5rem 0 0.5rem;
+}
+.page-head h1 {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.6rem, 4vw, 2.3rem);
+  letter-spacing: -0.02em;
+}
+.page-head .tagline {
+  margin: 0;
+  color: var(--text-muted);
+  max-width: 60ch;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.25rem 1.5rem;
+  margin: 1.25rem 0;
+}
+.panel h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.2rem;
+}
+.lede {
+  margin: 0 0 1rem;
+  color: var(--text-muted);
+  max-width: 70ch;
+}
+.lede code,
+p code {
+  color: var(--accent);
+}
+
+code,
+.mono {
+  font-family: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.panel-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+@media (max-width: 760px) {
+  .panel-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+.canvas-wrap {
+  min-width: 0;
+}
+.curve-canvas {
+  width: 100%;
+  height: 420px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  touch-action: none;
+  cursor: grab;
+  display: block;
+}
+.curve-canvas:active {
+  cursor: grabbing;
+}
+.curve-canvas:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.grid-canvas {
+  width: 100%;
+  max-width: 460px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: block;
+  cursor: crosshair;
+}
+
+.hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.aside {
+  min-width: 0;
+}
+.note {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+.whatisnt {
+  margin: 1rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  border-top: 1px dashed var(--border);
+  padding-top: 0.75rem;
+}
+a {
+  color: var(--accent);
+}
+
+/* Segmented world toggle ℝ / 𝔽ₚ */
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 3px;
+  margin-bottom: 1rem;
+  background: var(--panel-2);
+}
+.seg-btn {
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.seg-btn.on {
+  background: var(--accent);
+  color: #0d0a1f;
+}
+.seg-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.control-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: end;
+  margin-bottom: 0.75rem;
+}
+.btn {
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text);
+  padding: 0.45rem 0.8rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.88rem;
+}
+.btn:hover {
+  border-color: var(--accent);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.field.small {
+  max-width: 9rem;
+}
+select,
+input[type='text'] {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.4rem 0.55rem;
+  font-size: 0.9rem;
+}
+.check {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.88rem;
+  margin: 0.35rem 0;
+  cursor: pointer;
+}
+.pill {
+  display: inline-flex;
+  gap: 0.3rem;
+  align-items: center;
+  margin-left: 0.5rem;
+}
+.fp-pick {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Readout (formula panel) */
+.readout {
+  margin-top: 0.75rem;
+}
+.readout-inner {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+}
+.dl {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: 0.5rem;
+  padding: 0.2rem 0;
+  font-size: 0.85rem;
+}
+.dl .dt {
+  color: var(--text-muted);
+}
+.dl .dd {
+  word-break: break-word;
+}
+.result {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
+}
+.res-icon {
+  color: var(--success);
+  font-weight: 700;
+}
+.res-main {
+  font-weight: 600;
+}
+.res-note {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+}
+.muted,
+.dim {
+  color: var(--text-muted);
+}
+
+/* Scalar-mult trace + counts */
+.counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+.count-card {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.count-card b {
+  color: var(--text);
+  font-size: 1.05rem;
+}
+.count-card.accent {
+  border-color: var(--accent);
+}
+.trace {
+  max-height: 280px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-2);
+  padding: 0.4rem;
+}
+.trace-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.22rem 0.4rem;
+  font-size: 0.82rem;
+  border-radius: 6px;
+}
+.trace-row.cur {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.warn {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  background: color-mix(in srgb, #ffb84d 16%, transparent);
+  border: 1px solid #ffb84d;
+  border-radius: 8px;
+  padding: 0.6rem 0.7rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.6rem;
+}
+.warn-icon {
+  font-weight: 800;
+  color: #ffb84d;
+}
+
+/* ECDLP panel */
+.ecdlp-status .found {
+  color: var(--success);
+  font-weight: 600;
+}
+.tag-g {
+  color: var(--accent-2);
+}
+.tag-q {
+  color: var(--success);
+}
+.cmp {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5rem 0 0.75rem;
+  font-size: 0.85rem;
+}
+.cmp th,
+.cmp td {
+  border: 1px solid var(--border);
+  padding: 0.4rem 0.55rem;
+  text-align: left;
+}
+.cmp th {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* Scripture footer (Part D) — last visible element, both themes. */
+.scripture-footer {
+  text-align: center;
+  padding: 2rem 1rem;
+  font-size: 0.85rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  margin-top: 2rem;
+  max-width: var(--maxw);
+  margin-left: auto;
+  margin-right: auto;
+}
+.scripture-footer p {
+  margin: 0;
+}
+
+/* Mobile refinements */
+@media (max-width: 560px) {
+  .seg {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .seg-btn {
+    flex: 1 1 auto;
+    font-size: 0.82rem;
+    padding: 0.4rem 0.5rem;
+  }
+  .curve-canvas {
+    height: 320px;
+  }
+  #app {
+    padding: 1rem 0.85rem 3rem;
+  }
+  .panel {
+    padding: 1rem;
+  }
+}
+
+/* Respect reduced-motion: the step/walk animations are non-essential. */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto;
+  }
+}

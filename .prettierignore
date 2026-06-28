@@ -1,0 +1,9 @@
+dist
+node_modules
+package-lock.json
+
+# Planning / template docs (authored by hand, not part of the demo source)
+BUILD-TEMPLATE*.md
+PROMPT-standardize-parts-A-D*.md
+crypto-lab-ec-point-arithmetic-prompt.md
+BUILD-FILLED-ec-point-arithmetic.md
