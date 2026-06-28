@@ -79,8 +79,21 @@ export function panelAdd(): HTMLElement {
     FP_LIST.map((p, i) => el('option', { value: String(i) }, [p.label])),
   ) as HTMLSelectElement;
 
-  const realView = el('div', { class: 'mode-view' });
-  const fpView = el('div', { class: 'mode-view', hidden: true });
+  const realView = el('div', {
+    class: 'mode-view',
+    role: 'tabpanel',
+    id: 'cl-panel-real',
+    'aria-labelledby': 'cl-tab-real',
+    tabindex: '0',
+  });
+  const fpView = el('div', {
+    class: 'mode-view',
+    role: 'tabpanel',
+    id: 'cl-panel-fp',
+    'aria-labelledby': 'cl-tab-fp',
+    tabindex: '0',
+    hidden: true,
+  });
 
   let plane: PlaneRenderer | null = null;
   let grid: FieldGridRenderer | null = null;
@@ -238,19 +251,50 @@ export function panelAdd(): HTMLElement {
   });
 
   // ── Controls ──────────────────────────────────────────────────────────────
+  // ── ℝ / 𝔽ₚ world switch — a WAI-ARIA tablist with full keyboard support ─────
+  // realView / fpView are the two tabpanels (wired up where they're created).
+  const tabReal = tabButton('cl-tab-real', 'cl-panel-real', 'Over ℝ (geometry)', true, () =>
+    activateMode('real', true),
+  );
+  const tabFp = tabButton('cl-tab-fp', 'cl-panel-fp', 'Over 𝔽ₚ (real crypto)', false, () =>
+    activateMode('fp', true),
+  );
+  const tabs = [tabReal, tabFp] as const;
   const toggle = el('div', { class: 'seg', role: 'tablist', 'aria-label': 'Arithmetic world' }, [
-    segButton('Over ℝ (geometry)', true, () => switchMode('real')),
-    segButton('Over 𝔽ₚ (real crypto)', false, () => switchMode('fp')),
+    tabReal,
+    tabFp,
   ]);
+
+  // Arrow / Home / End move between tabs with roving tabindex; activation is
+  // automatic (moving to a tab selects it), matching the APG tabs pattern.
+  toggle.addEventListener('keydown', (e) => {
+    const idx = tabs.indexOf(document.activeElement as HTMLButtonElement);
+    if (idx < 0) return;
+    let next = -1;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (idx + 1) % tabs.length;
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp')
+      next = (idx - 1 + tabs.length) % tabs.length;
+    else if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = tabs.length - 1;
+    else return;
+    e.preventDefault();
+    activateMode(next === 0 ? 'real' : 'fp', true);
+  });
+
+  function activateMode(m: 'real' | 'fp', focusTab = false) {
+    switchMode(m);
+    if (focusTab) (m === 'real' ? tabReal : tabFp).focus();
+  }
 
   function switchMode(m: 'real' | 'fp') {
     mode = m;
     realView.hidden = m !== 'real';
     fpView.hidden = m !== 'fp';
-    for (const [i, btn] of Array.from(toggle.children).entries()) {
+    for (const [i, tab] of tabs.entries()) {
       const on = (i === 0) === (m === 'real');
-      btn.classList.toggle('on', on);
-      btn.setAttribute('aria-selected', String(on));
+      tab.classList.toggle('on', on);
+      tab.setAttribute('aria-selected', String(on));
+      tab.tabIndex = on ? 0 : -1; // roving tabindex
     }
     requestAnimationFrame(() => {
       if (m === 'real') {
@@ -631,17 +675,26 @@ function checkbox(label: string, onChange: (on: boolean) => void): HTMLElement {
   });
   return el('label', { class: 'check' }, [input, label]);
 }
-function segButton(label: string, on: boolean, onClick: () => void): HTMLElement {
+function tabButton(
+  id: string,
+  controls: string,
+  label: string,
+  selected: boolean,
+  onActivate: () => void,
+): HTMLButtonElement {
   return el(
     'button',
     {
-      class: on ? 'seg-btn on' : 'seg-btn',
+      class: selected ? 'seg-btn on' : 'seg-btn',
       role: 'tab',
-      'aria-selected': String(on),
-      onclick: onClick,
+      id,
+      'aria-controls': controls,
+      'aria-selected': String(selected),
+      tabindex: selected ? '0' : '-1',
+      onclick: onActivate,
     },
     [label],
-  );
+  ) as HTMLButtonElement;
 }
 function chip(label: string, onClick: () => void): HTMLElement {
   return el('button', { class: 'chip-btn', type: 'button', onclick: onClick }, [label]);

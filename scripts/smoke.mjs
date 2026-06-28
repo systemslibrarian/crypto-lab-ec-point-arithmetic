@@ -69,6 +69,24 @@ ok(
   /λ \(tangent\)/.test(await page.locator('#add .readout').first().innerText()),
 );
 
+// Keyboard: arrow keys switch the ℝ/𝔽ₚ tabs (WAI-ARIA tablist, automatic activation).
+await page.locator('#add #cl-tab-real').focus();
+await page.keyboard.press('ArrowRight');
+ok(
+  'ArrowRight selects the 𝔽ₚ tab',
+  (await page.locator('#add #cl-tab-fp').getAttribute('aria-selected')) === 'true',
+);
+ok('𝔽ₚ tabpanel shown after arrow key', await page.locator('#add #cl-panel-fp').isVisible());
+ok(
+  'roving tabindex: ℝ tab is removed from the tab order',
+  (await page.locator('#add #cl-tab-real').getAttribute('tabindex')) === '-1',
+);
+await page.keyboard.press('ArrowLeft');
+ok(
+  'ArrowLeft selects the ℝ tab again',
+  (await page.locator('#add #cl-tab-real').getAttribute('aria-selected')) === 'true',
+);
+
 // secp256k1 numeric point-add reveal.
 await page.locator('#add .seg-btn').nth(1).click(); // switch to 𝔽ₚ view
 await page.selectOption('#add select[aria-label="Finite-field curve"]', { index: 2 }); // secp256k1
