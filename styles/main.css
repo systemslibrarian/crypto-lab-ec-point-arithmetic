@@ -5,8 +5,11 @@
    palettes so the always-dark shared header tints to this lab's color, not teal. */
 
 :root {
+  color-scheme: dark;
+
   --accent: #9f88ff;
   --accent-2: #35d6bb;
+  --on-accent: #0d0a1f;
 
   --bg: #0d1218;
   --panel: #141b22;
@@ -19,14 +22,18 @@
   --axis: #3a4a5c;
   --curve: #aeb9c6;
   --success: #4ade80;
+  --warn: #ffb84d;
 
   --radius: 12px;
   --maxw: 980px;
 }
 
 :root[data-theme='light'] {
-  --accent: #6b4ef0;
-  --accent-2: #0e9c86;
+  color-scheme: light;
+
+  --accent: #5f43e0;
+  --accent-2: #0a6f60;
+  --on-accent: #ffffff;
 
   --bg: #f6f1e7;
   --panel: #fffdf8;
@@ -38,7 +45,8 @@
   --grid: #e6ddca;
   --axis: #b3a888;
   --curve: #5a6675;
-  --success: #15803d;
+  --success: #166534;
+  --warn: #8a5c00;
 }
 
 * {
@@ -51,9 +59,15 @@
   display: none !important;
 }
 
+/* WebKit reports the body->canvas background propagation as transparent, which
+   breaks automated contrast checks — paint the root element explicitly. */
+html {
+  background-color: var(--bg);
+}
+
 body {
   margin: 0;
-  background: var(--bg);
+  background-color: var(--bg);
   color: var(--text);
   font:
     16px/1.6 ui-sans-serif,
@@ -85,7 +99,7 @@ body {
 }
 
 .panel {
-  background: var(--panel);
+  background-color: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1.25rem 1.25rem 1.5rem;
@@ -128,7 +142,7 @@ code,
 .curve-canvas {
   width: 100%;
   height: 420px;
-  background: var(--panel-2);
+  background-color: var(--panel-2);
   border: 1px solid var(--border);
   border-radius: 10px;
   touch-action: none;
@@ -145,7 +159,7 @@ code,
 .grid-canvas {
   width: 100%;
   max-width: 460px;
-  background: var(--panel-2);
+  background-color: var(--panel-2);
   border: 1px solid var(--border);
   border-radius: 10px;
   display: block;
@@ -184,7 +198,7 @@ a {
   padding: 3px;
   gap: 3px;
   margin-bottom: 1rem;
-  background: var(--panel-2);
+  background-color: var(--panel-2);
 }
 .seg-btn {
   border: 0;
@@ -197,8 +211,8 @@ a {
   font-size: 0.9rem;
 }
 .seg-btn.on {
-  background: var(--accent);
-  color: #0d0a1f;
+  background-color: var(--accent);
+  color: var(--on-accent);
 }
 .seg-btn:focus-visible {
   outline: 2px solid var(--accent);
@@ -214,7 +228,7 @@ a {
 }
 .btn {
   border: 1px solid var(--border);
-  background: var(--panel-2);
+  background-color: var(--panel-2);
   color: var(--text);
   padding: 0.45rem 0.8rem;
   border-radius: 8px;
@@ -245,12 +259,21 @@ a {
 }
 select,
 input[type='text'] {
-  background: var(--panel-2);
+  background-color: var(--panel-2);
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.4rem 0.55rem;
   font-size: 0.9rem;
+}
+/* Custom-styled select: drop the native arrow (inconsistent contrast across
+   engines) and draw a neutral chevron that works on both theme panels. */
+select {
+  appearance: none;
+  padding-right: 1.8rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='%238b949e' stroke-width='2' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
 }
 .check {
   display: flex;
@@ -277,7 +300,7 @@ input[type='text'] {
   margin-top: 0.75rem;
 }
 .readout-inner {
-  background: var(--panel-2);
+  background-color: var(--panel-2);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.75rem 0.9rem;
@@ -327,7 +350,7 @@ input[type='text'] {
   margin: 0.75rem 0;
 }
 .count-card {
-  background: var(--panel-2);
+  background-color: var(--panel-2);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.4rem 0.7rem;
@@ -346,7 +369,7 @@ input[type='text'] {
   overflow: auto;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: var(--panel-2);
+  background-color: var(--panel-2);
   padding: 0.4rem;
 }
 .trace-row {
@@ -358,14 +381,14 @@ input[type='text'] {
   border-radius: 6px;
 }
 .trace-row.cur {
-  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  background-color: color-mix(in srgb, var(--accent) 22%, transparent);
 }
 .warn {
   display: flex;
   gap: 0.5rem;
   align-items: flex-start;
-  background: color-mix(in srgb, #ffb84d 16%, transparent);
-  border: 1px solid #ffb84d;
+  background-color: color-mix(in srgb, var(--warn) 16%, transparent);
+  border: 1px solid var(--warn);
   border-radius: 8px;
   padding: 0.6rem 0.7rem;
   font-size: 0.85rem;
@@ -373,7 +396,7 @@ input[type='text'] {
 }
 .warn-icon {
   font-weight: 800;
-  color: #ffb84d;
+  color: var(--warn);
 }
 
 /* Scalar result card + bit tape + comparison */
@@ -386,7 +409,7 @@ input[type='text'] {
   padding: 0.6rem 0.8rem;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: var(--panel-2);
+  background-color: var(--panel-2);
   font-size: 0.92rem;
 }
 .result-card.ready {
@@ -435,8 +458,8 @@ input[type='text'] {
   border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
 }
 .bt-bit.cur {
-  color: #0d0a1f;
-  background: var(--accent);
+  color: var(--on-accent);
+  background-color: var(--accent);
   border-color: var(--accent);
   font-weight: 700;
 }
@@ -451,7 +474,7 @@ input[type='text'] {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.5rem 0.65rem;
-  background: var(--panel-2);
+  background-color: var(--panel-2);
 }
 .cmp-card.sel {
   border-color: var(--accent);
@@ -489,7 +512,7 @@ input[type='text'] {
   cursor: pointer;
 }
 .chip-btn:hover {
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  background-color: color-mix(in srgb, var(--accent) 14%, transparent);
   border-color: var(--accent);
 }
 .chip-btn:focus-visible {
@@ -524,7 +547,7 @@ input[type='text'] {
   border-radius: 8px;
   padding: 0.5rem 0.6rem;
   margin-bottom: 0.5rem;
-  background: var(--panel-2);
+  background-color: var(--panel-2);
 }
 .coord-group.result-coord {
   border-color: var(--success);
@@ -553,7 +576,7 @@ input[type='text'] {
   overflow-x: auto;
   white-space: nowrap;
   padding: 0.25rem 0.4rem;
-  background: var(--bg);
+  background-color: var(--bg);
   border: 1px solid var(--border);
   border-radius: 6px;
   font-size: 0.8rem;
@@ -565,7 +588,7 @@ input[type='text'] {
 .copy-btn {
   flex: 0 0 auto;
   border: 1px solid var(--border);
-  background: var(--panel-2);
+  background-color: var(--panel-2);
   color: var(--text);
   border-radius: 6px;
   padding: 0.25rem 0.45rem;
