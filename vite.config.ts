@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   base: '/crypto-lab-ec-point-arithmetic/',
@@ -11,5 +11,7 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    // Unit tests live under src/; keep the Playwright e2e/ specs out of vitest.
+    include: ['src/**/*.test.ts'],
   },
 });
