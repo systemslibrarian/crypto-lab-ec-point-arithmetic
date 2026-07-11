@@ -18,8 +18,7 @@ const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
 
 async function neutralizeMotion(page: Page): Promise<void> {
   await page.addStyleTag({
-    content:
-      '*, *::before, *::after { animation: none !important; transition: none !important; }',
+    content: '*, *::before, *::after { animation: none !important; transition: none !important; }',
   });
 }
 
