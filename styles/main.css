@@ -84,19 +84,70 @@ body {
   padding: 1.5rem 1.25rem 4rem;
 }
 
-.page-head {
-  padding: 1.5rem 0 0.5rem;
+/* BEGIN cl-hero standard — managed, keep in sync across fleet.
+   This lab's dim text var is --text-muted (no --text-dim); the why-label uses
+   --text so it clears AA contrast on the tinted box in both themes. */
+.cl-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: clamp(1rem, 4vw, 3rem);
+  flex-wrap: wrap;
+  margin: clamp(1rem, 3vw, 2rem) 0 1.5rem;
 }
-.page-head h1 {
-  margin: 0 0 0.35rem;
-  font-size: clamp(1.6rem, 4vw, 2.3rem);
-  letter-spacing: -0.02em;
+.cl-hero-main {
+  flex: 1 1 22rem;
+  min-width: min(100%, 20rem);
 }
-.page-head .tagline {
+.cl-hero-title {
   margin: 0;
+  font-size: clamp(1.6rem, 3.8vw, 2.7rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+}
+.cl-hero-sub {
+  margin: 0.4rem 0 0;
+  font-size: clamp(0.9rem, 1.6vw, 1.05rem);
+  letter-spacing: 0.01em;
+  opacity: 0.85;
+}
+.cl-hero-desc {
+  margin: 0.55rem 0 0;
+  font-size: 1rem;
+  line-height: 1.5;
   color: var(--text-muted);
   max-width: 60ch;
 }
+.cl-hero-why {
+  flex: 0 1 min(40%, 26rem);
+  min-width: min(100%, 15rem);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.85rem 1.05rem;
+  background: color-mix(in oklab, var(--accent) 6%, transparent);
+}
+.cl-hero-why-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+.cl-hero-why-text {
+  margin: 0.35rem 0 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+@media (max-width: 640px) {
+  .cl-hero {
+    flex-direction: column;
+  }
+  .cl-hero-why {
+    flex-basis: auto;
+    width: 100%;
+  }
+}
+/* END cl-hero standard */
 
 .panel {
   background-color: var(--panel);
