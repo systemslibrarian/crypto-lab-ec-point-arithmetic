@@ -10,8 +10,10 @@ import { el } from './ui/dom';
 
 export function initApp(root: HTMLElement): void {
   // Fleet-standard hero: title block on the left, "why it matters" box on the
-  // right. The shared topbar is the page's single banner landmark; the shared
-  // header script demotes this <header> to role="group" so landmarks stay unique.
+  // right. The shared topbar is the page's single banner landmark; this <header>
+  // sits inside the <main> below, so it never maps to a second banner landmark
+  // (the shared header script only demotes <header>s that are direct children
+  // of <body>, which this one is not).
   const head = el('header', { class: 'cl-hero' }, [
     el('div', { class: 'cl-hero-main' }, [
       el('h1', { class: 'cl-hero-title' }, ['EC Point Arithmetic']),
@@ -31,5 +33,15 @@ export function initApp(root: HTMLElement): void {
     ]),
   ]);
 
-  root.append(head, panelIntro(), panelAdd(), panelScalar(), panelHard());
+  // All of the lab's own content lives in a <main> landmark (WCAG 1.3.1 /
+  // 2.4.1); the scripture <footer> in index.html stays outside it.
+  const main = el('main', { id: 'main-content', tabindex: '-1' }, [
+    head,
+    panelIntro(),
+    panelAdd(),
+    panelScalar(),
+    panelHard(),
+  ]);
+
+  root.append(main);
 }

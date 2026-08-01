@@ -84,9 +84,6 @@ body {
   padding: 1.5rem 1.25rem 4rem;
 }
 
-/* BEGIN cl-hero standard — managed, keep in sync across fleet.
-   This lab's dim text var is --text-muted (no --text-dim); the why-label uses
-   --text so it clears AA contrast on the tinted box in both themes. */
 .cl-hero {
   display: flex;
   align-items: flex-start;
@@ -146,8 +143,11 @@ body {
     flex-basis: auto;
     width: 100%;
   }
+  .cl-hero-main {
+    flex-basis: auto;
+    min-width: 0;
+  }
 }
-/* END cl-hero standard */
 
 .panel {
   background-color: var(--panel);
@@ -255,6 +255,8 @@ a {
   border: 0;
   background: transparent;
   color: var(--text-muted);
+  /* >=44px tall so the world switch is a comfortable touch target (WCAG 2.5.5). */
+  min-height: 44px;
   padding: 0.4rem 0.9rem;
   border-radius: 999px;
   cursor: pointer;
@@ -281,6 +283,7 @@ a {
   border: 1px solid var(--border);
   background-color: var(--panel-2);
   color: var(--text);
+  min-height: 44px;
   padding: 0.45rem 0.8rem;
   border-radius: 8px;
   cursor: pointer;
@@ -314,6 +317,7 @@ input[type='text'] {
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 8px;
+  min-height: 44px;
   padding: 0.4rem 0.55rem;
   font-size: 0.9rem;
 }
@@ -444,6 +448,10 @@ select {
   padding: 0.6rem 0.7rem;
   font-size: 0.85rem;
   margin-bottom: 0.6rem;
+  /* k can be a 78-digit secp256k1 order: an unbroken numeric token that would
+     otherwise force horizontal page scroll at 360px. */
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .warn-icon {
   font-weight: 800;
@@ -462,6 +470,9 @@ select {
   border-radius: 10px;
   background-color: var(--panel-2);
   font-size: 0.92rem;
+  /* Same reason as .warn: k is user-supplied and can be a huge unbroken digit run. */
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .result-card.ready {
   color: var(--text-muted);
@@ -557,7 +568,8 @@ select {
   border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
   background: transparent;
   color: var(--text);
-  padding: 0.3rem 0.6rem;
+  min-height: 44px;
+  padding: 0.3rem 0.8rem;
   border-radius: 999px;
   font-size: 0.8rem;
   cursor: pointer;
@@ -642,6 +654,9 @@ select {
   background-color: var(--panel-2);
   color: var(--text);
   border-radius: 6px;
+  /* Icon-only control: give it a full 44x44 hit area (WCAG 2.5.5). */
+  min-width: 44px;
+  min-height: 44px;
   padding: 0.25rem 0.45rem;
   cursor: pointer;
   font-size: 0.85rem;
@@ -720,9 +735,16 @@ select {
   }
 }
 
-/* Respect reduced-motion: the step/walk animations are non-essential. */
+/* Respect reduced-motion: the step/walk animations are non-essential. The
+   previous rule only reset scroll-behavior, so it left real motion (e.g. the
+   shared header's .cl-btn colour transitions) running. */
 @media (prefers-reduced-motion: reduce) {
-  * {
-    scroll-behavior: auto;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }

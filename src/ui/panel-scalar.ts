@@ -39,12 +39,19 @@ export function panelScalar(): HTMLElement {
   ]) as HTMLSelectElement;
   methodSel.value = 'dbladd';
 
-  const canvas = el('canvas', { class: 'grid-canvas' });
+  const canvas = el('canvas', {
+    class: 'grid-canvas',
+    role: 'img',
+    'aria-label':
+      'Point lattice for the selected finite-field curve, with the generator G and the ' +
+      'current accumulator highlighted. The same values are reported as text in the result ' +
+      'card and the trace below.',
+  });
   const resultCard = el('div', { class: 'result-card', role: 'status', 'aria-live': 'polite' });
   const bitTape = el('div', { class: 'bit-tape' });
   const compare = el('div', { class: 'compare' });
   const traceBox = el('div', { class: 'trace' });
-  const warn = el('div', { class: 'warn', hidden: true });
+  const warn = el('div', { class: 'warn', role: 'status', hidden: true });
 
   const stepBtn = el('button', { class: 'btn', onclick: () => stepOnce() }, ['Step ▸']);
   const playBtn = el('button', { class: 'btn', onclick: () => togglePlay() }, ['Play ▶']);

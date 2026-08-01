@@ -31,7 +31,16 @@ export function panelHard(): HTMLElement {
     return r;
   }
 
-  const canvas = el('canvas', { class: 'grid-canvas' });
+  const canvas = el('canvas', {
+    class: 'grid-canvas',
+    role: 'img',
+    'aria-label':
+      'Point lattice of the toy curve over F97, highlighting the generator G, the public ' +
+      'point Q, and the multiple reached so far. Progress is reported as text below.',
+  });
+  // Deliberately not a live region: the walk updates this every 140 ms, which
+  // would flood a screen reader. The final "Found after n steps" result is
+  // reachable by reading the panel.
   const status = el('div', { class: 'ecdlp-status' });
 
   const walkBtn = el('button', { class: 'btn', onclick: toggleWalk }, ['Walk the subgroup ▶']);
@@ -118,9 +127,9 @@ export function panelHard(): HTMLElement {
   const table = el('table', { class: 'cmp' }, [
     el('thead', {}, [
       el('tr', {}, [
-        el('th', {}, ['Curve']),
-        el('th', {}, ['Subgroup order n']),
-        el('th', {}, ['Best generic attack ≈ √n']),
+        el('th', { scope: 'col' }, ['Curve']),
+        el('th', { scope: 'col' }, ['Subgroup order n']),
+        el('th', { scope: 'col' }, ['Best generic attack ≈ √n']),
       ]),
     ]),
     el('tbody', {}, [
