@@ -15,6 +15,12 @@
   --panel: #141b22;
   --panel-2: #1b2531;
   --border: #25303d;
+  /* Control boundaries only (buttons, select, text inputs, chips). Interactive
+     controls here are filled with --panel-2, which sits at ~1.12:1 against
+     --panel, so the border is the only thing marking the control's edge and
+     WCAG 2.1 SC 1.4.11 requires it to clear 3:1. --border stays as-is for
+     decorative rules (panel outlines, table rules, readouts). */
+  --border-strong: #587290;
   --text: #e8edf2;
   --text-muted: #8a97a6;
 
@@ -39,6 +45,7 @@
   --panel: #fffdf8;
   --panel-2: #f0ead9;
   --border: #ddd3bf;
+  --border-strong: #998151;
   --text: #1c2530;
   --text-muted: #5d6b78;
 
@@ -244,7 +251,7 @@ a {
 /* Segmented world toggle ℝ / 𝔽ₚ */
 .seg {
   display: inline-flex;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   border-radius: 999px;
   padding: 3px;
   gap: 3px;
@@ -280,7 +287,7 @@ a {
   margin-bottom: 0.75rem;
 }
 .btn {
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   background-color: var(--panel-2);
   color: var(--text);
   min-height: 44px;
@@ -315,7 +322,7 @@ select,
 input[type='text'] {
   background-color: var(--panel-2);
   color: var(--text);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   min-height: 44px;
   padding: 0.4rem 0.55rem;
@@ -565,7 +572,7 @@ select {
   margin: 0.25rem 0 0.75rem;
 }
 .chip-btn {
-  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border-strong));
   background: transparent;
   color: var(--text);
   min-height: 44px;
@@ -650,7 +657,7 @@ select {
 }
 .copy-btn {
   flex: 0 0 auto;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   background-color: var(--panel-2);
   color: var(--text);
   border-radius: 6px;
