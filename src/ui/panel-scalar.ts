@@ -125,6 +125,18 @@ export function panelScalar(): HTMLElement {
       resultCard.replaceChildren(el('span', { class: 'dim' }, ['This curve has no generator.']));
       return;
     }
+    if (k === 0n) {
+      // 0 · G = O by definition, so there is no trace to step through. Show the
+      // verdict outright — otherwise the "k = 0 → O" example leaves a "press
+      // Step" prompt whose buttons do nothing and the promised O never appears.
+      resultCard.className = 'result-card done';
+      resultCard.replaceChildren(
+        el('span', { class: 'res-icon' }, ['✓']),
+        el('span', { class: 'rc-label' }, ['0 · G =']),
+        el('span', { class: 'mono' }, [ptStr(null)]),
+      );
+      return;
+    }
     if (cursor === 0) {
       resultCard.className = 'result-card ready';
       resultCard.replaceChildren(
@@ -168,9 +180,15 @@ export function panelScalar(): HTMLElement {
   function renderCompare() {
     // Always show BOTH costs for the current k, so the gap is on screen even
     // while only one method animates. Live progress counts the selected method.
-    const naiveOps = k > 0n ? k - 1n : 0n; // additions to add G to itself k−1 times
+    // Both costs count exactly the operations this demo performs and lists in the
+    // trace: the accumulator starts at O, so repeated addition does k additions,
+    // and double-and-add does one doubling per bit plus one addition per 1-bit
+    // (including the leading one, which adds G to the doubled O). Counting them
+    // any other way makes these cards disagree with the live counters right below
+    // them, with the trace, and with the "k is too large" warning.
+    const naiveOps = k > 0n ? k : 0n;
     const dblD = BigInt(bitLen(k));
-    const dblA = BigInt(Math.max(0, popcount(k) - 1)); // first 1-bit needs no add
+    const dblA = BigInt(popcount(k));
     const dblTotal = dblD + dblA;
 
     const liveAdds = steps.slice(0, cursor).filter((s) => s.op === 'add').length;
@@ -264,7 +282,7 @@ export function panelScalar(): HTMLElement {
     el('p', { class: 'lede' }, [
       'Scalar multiplication is just adding a point to itself k times. Doing it ',
       el('em', {}, ['naively']),
-      ' takes k−1 additions. ',
+      ' takes k additions. ',
       el('em', {}, ['Double-and-add']),
       ' reaches the same point in about log₂k steps — the gap between these two is exactly why ECC is practical.',
     ]),

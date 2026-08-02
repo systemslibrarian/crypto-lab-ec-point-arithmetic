@@ -42,6 +42,11 @@ export function panelAdd(): HTMLElement {
   let fpCurve: FpCurve = FP_LIST[fpIdx].curve;
   let fpP: FpPoint = FP_LIST[fpIdx].G ?? null;
   let fpQ: FpPoint = null;
+  // null means two different things for Q: "not picked yet" (the initial state,
+  // which prompts the user to choose) and "deliberately set to O" (the P + O = P
+  // example). Without this flag the identity example silently renders as the
+  // prompt and never shows the verdict it advertises.
+  let fpQChosen = false;
   let nextClick: 'p' | 'q' = 'q';
 
   let mode: 'real' | 'fp' = 'real';
@@ -210,7 +215,7 @@ export function panelAdd(): HTMLElement {
       if (!grid) return;
       const c = fpConstruction(fpCurve, fpP, fpQ);
       grid.draw({ p: fpP, q: fpQ, sum: c.sum, thirdIntersection: c.third });
-      fpReadout.replaceChildren(renderFpReadout(fpCurve, fpP, fpQ));
+      fpReadout.replaceChildren(renderFpReadout(fpCurve, fpP, fpQ, fpQChosen));
     } else {
       // secp256k1: no lattice (too large to enumerate), exact numeric readout.
       fpReadout.replaceChildren(renderFpNumeric(fpCurve, fpP, fpQ));
@@ -231,6 +236,7 @@ export function panelAdd(): HTMLElement {
   });
   fpSelQ.addEventListener('change', () => {
     fpQ = fpPoints[Number(fpSelQ.value)] ?? null;
+    fpQChosen = true;
     drawFp();
   });
 
@@ -244,6 +250,7 @@ export function panelAdd(): HTMLElement {
       nextClick = 'q';
     } else {
       fpQ = hit;
+      fpQChosen = true;
       nextClick = 'p';
     }
     syncFpSelects();
@@ -581,13 +588,29 @@ function fpConstruction(curve: FpCurve, P: FpPoint, Q: FpPoint): { sum: FpPoint;
   return { sum, third };
 }
 
-function renderFpReadout(curve: FpCurve, P: FpPoint, Q: FpPoint): HTMLElement {
-  if (!P || !Q) {
+function renderFpReadout(curve: FpCurve, P: FpPoint, Q: FpPoint, qChosen = false): HTMLElement {
+  // null means two different things for Q: nobody has picked one yet, or the
+  // learner deliberately chose O for the P + O = P identity example. Only the
+  // first should prompt — treating both as "unpicked" swallowed the identity
+  // verdict this panel advertises.
+  if (!P || (!Q && !qChosen)) {
     return el('div', { class: 'readout-inner' }, [
       el('p', { class: 'muted' }, ['Pick points P and Q on the lattice.']),
     ]);
   }
-  if (!isOnCurve(curve, P) || !isOnCurve(curve, Q)) {
+  if (!Q) {
+    // P + O = P, computed rather than asserted.
+    const sum = fpAdd(curve, P, null);
+    const str = (pt: FpPoint) => (pt ? `(${pt.x}, ${pt.y})` : 'O (∞)');
+    return el('div', { class: 'readout-inner' }, [
+      el('p', { class: 'mono' }, [`P + O = ${str(sum)}`]),
+      el('p', { class: 'muted' }, ['O is the identity: adding it returns P unchanged.']),
+    ]);
+  }
+  if (!isOnCurve(curve, P)) {
+    return el('div', { class: 'readout-inner' }, [el('p', {}, ['Point is not on the curve.'])]);
+  }
+  if (!isOnCurve(curve, Q)) {
     return el('div', { class: 'readout-inner' }, [el('p', {}, ['Point is not on the curve.'])]);
   }
   const { p, a } = curve;

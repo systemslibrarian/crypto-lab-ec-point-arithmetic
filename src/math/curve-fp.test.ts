@@ -104,3 +104,41 @@ describe('secp256k1 cross-checked against @noble/curves', () => {
     expect(ours.y).toBe(ref.y);
   });
 });
+
+describe('trace lengths match the cost the UI advertises', () => {
+  // The scalar panel prints a naive-vs-double-and-add cost comparison beside a
+  // live step counter driven by these traces. It used to advertise k-1 naive
+  // additions and popcount(k)-1 double-and-add additions, which disagreed with
+  // the traces the same page then stepped through: the accumulator starts at O,
+  // so the first 1-bit still costs a real addition.
+  const curve = toy;
+
+  for (const k of [1n, 2n, 3n, 5n, 8n, 13n]) {
+    it(`k = ${k}: naive trace has exactly k additions`, () => {
+      const steps = scalarMulNaive(curve, k, G);
+      expect(steps.filter((s) => s.op === 'add')).toHaveLength(Number(k));
+    });
+
+    it(`k = ${k}: double-and-add trace has one double per bit and one add per 1-bit`, () => {
+      const steps = scalarMulDoubleAndAdd(curve, k, G);
+      const bits = k.toString(2);
+      const ones = bits.split('').filter((c) => c === '1').length;
+      expect(steps.filter((s) => s.op === 'double')).toHaveLength(bits.length);
+      expect(steps.filter((s) => s.op === 'add')).toHaveLength(ones);
+    });
+  }
+
+  it('both methods reach the same point', () => {
+    for (const k of [1n, 3n, 7n, 11n]) {
+      const naive = scalarMulNaive(curve, k, G);
+      const dbl = scalarMulDoubleAndAdd(curve, k, G);
+      expect(naive[naive.length - 1].result).toEqual(dbl[dbl.length - 1].result);
+    }
+  });
+
+  it('P + O returns P unchanged, so the identity example has a real verdict', () => {
+    expect(add(curve, G, null)).toEqual(G);
+    expect(add(curve, null, G)).toEqual(G);
+    expect(add(curve, null, null)).toBeNull();
+  });
+});
