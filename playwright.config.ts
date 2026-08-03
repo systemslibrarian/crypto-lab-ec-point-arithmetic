@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const PORT = 4220;
+const PORT = 4630;
 const BASE = '/crypto-lab-ec-point-arithmetic/';
 
 export default defineConfig({
