@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:a11y": "playwright test",
+    "test:a11y": "playwright test a11y",
+    "test:e2e": "playwright test",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "smoke": "node scripts/smoke.mjs"

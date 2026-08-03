@@ -33,8 +33,11 @@ jobs:
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
-      - name: Accessibility gate (axe-core, WCAG A/AA)
-        run: npm run test:a11y
+      # Runs both browser specs: the axe-core WCAG A/AA scan and the functional
+      # claims spec that asserts every verdict, counter and edge case in a real
+      # browser. Both are blocking.
+      - name: Browser gate (axe-core WCAG A/AA + rendered claims)
+        run: npm run test:e2e
 
       - uses: actions/upload-pages-artifact@v3
         with:

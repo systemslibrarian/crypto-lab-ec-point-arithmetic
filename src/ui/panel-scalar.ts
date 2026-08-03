@@ -244,7 +244,16 @@ export function panelScalar(): HTMLElement {
       if (preset.G) hl.push({ point: preset.G, color: pal.accent2, label: 'G' });
       const res = currentResult();
       if (res) hl.push({ point: res, color: pal.success, label: complete() ? `${k}·G` : 'acc' });
-      requestAnimationFrame(() => renderLattice(canvas, preset.curve, hl));
+      // Pin the curve *now*. Reading `preset.curve` inside the callback lets a
+      // frame queued for a toy curve fire after the menu has moved to secp256k1,
+      // and renderLattice would then try to draw a p-by-p grid with p ≈ 2²⁵⁶ —
+      // an effectively infinite loop that freezes the tab.
+      // Pin the curve *now*. Reading `preset.curve` inside the callback lets a
+      // frame queued for a toy curve fire after the menu has moved to secp256k1,
+      // and renderLattice would then try to draw a p-by-p grid with p ≈ 2²⁵⁶ —
+      // an effectively infinite loop that freezes the tab.
+      const drawnCurve = preset.curve;
+      requestAnimationFrame(() => renderLattice(canvas, drawnCurve, hl));
     } else {
       canvas.hidden = true;
     }

@@ -329,6 +329,10 @@ export function panelAdd(): HTMLElement {
     const preset: FpPreset = FP_LIST[fpIdx];
     fpCurve = preset.curve;
     nextClick = 'q';
+    // A new curve is a fresh pick: the previous curve's "Q was chosen" state must
+    // not leak, or the reset-to-O state renders as the P + O = P verdict instead
+    // of the prompt that asks for two points on the new lattice.
+    fpQChosen = false;
     if (preset.plottable) {
       fpP = preset.G ?? null;
       fpQ = null;
@@ -437,6 +441,10 @@ export function panelAdd(): HTMLElement {
   const fpExamples = el('div', { class: 'chips' }, [
     chip('P + O = P', () => {
       fpQ = null;
+      // Q = O is a deliberate choice, not "nothing picked yet". Without setting
+      // the flag the readout falls back to the "pick two points" prompt and the
+      // identity verdict this example advertises never appears.
+      fpQChosen = true;
       syncFpSelects();
       drawFp();
     }),
