@@ -2,7 +2,7 @@
 // responds in a real browser (jsdom can't run canvas). NOT part of CI, since it
 // needs a local Chromium/Edge. Run it manually:
 //
-//   npm run build && npm run preview &   # serve dist on :4173
+//   npm run build && npm run preview &   # serve dist on :4701
 //   npm run smoke                        # drives a system browser against it
 //
 // Requires Playwright + a system browser. Playwright is intentionally NOT a
@@ -13,7 +13,7 @@
 
 import { chromium } from 'playwright';
 
-const URL = process.env.SMOKE_URL || 'http://localhost:4173/crypto-lab-ec-point-arithmetic/';
+const URL = process.env.SMOKE_URL || 'http://localhost:4701/crypto-lab-ec-point-arithmetic/';
 const CHANNEL = process.env.SMOKE_CHANNEL || 'msedge';
 
 const results = [];
