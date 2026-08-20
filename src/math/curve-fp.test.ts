@@ -1,4 +1,4 @@
-import { secp256k1 } from '@noble/curves/secp256k1';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { describe, expect, it } from 'vitest';
 import {
   add,
@@ -90,7 +90,7 @@ describe('secp256k1 cross-checked against @noble/curves', () => {
   it('matches @noble for a range of small base-point multiples', () => {
     for (let k = 1n; k <= 20n; k += 1n) {
       const ours = scalarMul(c, k, base)!;
-      const ref = secp256k1.ProjectivePoint.BASE.multiply(k).toAffine();
+      const ref = secp256k1.Point.BASE.multiply(k).toAffine();
       expect(ours.x).toBe(ref.x);
       expect(ours.y).toBe(ref.y);
     }
@@ -99,7 +99,7 @@ describe('secp256k1 cross-checked against @noble/curves', () => {
   it('matches @noble for a large random-ish scalar', () => {
     const k = 0x123456789abcdef0fedcba9876543210deadbeefcafef00dn;
     const ours = scalarMul(c, k, base)!;
-    const ref = secp256k1.ProjectivePoint.BASE.multiply(k).toAffine();
+    const ref = secp256k1.Point.BASE.multiply(k).toAffine();
     expect(ours.x).toBe(ref.x);
     expect(ours.y).toBe(ref.y);
   });
