@@ -15,9 +15,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # Node 24: jsdom 30 declares engines ^22.22.2 || ^24.15.0 || >=26.0.0 and
+      # pulls undici 8, which needs the newer runtime -- on Node 20 every jsdom
+      # test worker died with `webidl.util.markAsUncloneable is not a function`
+      # before collecting a single test. Node 20 also went out of support in
+      # April 2026. Matches the labs already on jsdom 30 (curve-lens,
+      # phantom-vault, stark-tower).
       - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
 
       - run: npm ci
