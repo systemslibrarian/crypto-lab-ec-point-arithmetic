@@ -277,7 +277,9 @@ export function panelAdd(): HTMLElement {
   toggle.addEventListener('keydown', (e) => {
     const idx = tabs.indexOf(document.activeElement as HTMLButtonElement);
     if (idx < 0) return;
-    let next = -1;
+    // No initializer: every branch below either assigns `next` or returns, so
+    // a placeholder here would only ever be dead (@eslint/js 10 says so too).
+    let next: number;
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (idx + 1) % tabs.length;
     else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp')
       next = (idx - 1 + tabs.length) % tabs.length;
