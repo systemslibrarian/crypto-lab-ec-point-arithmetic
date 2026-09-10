@@ -44,3 +44,5 @@ There are no environment variables. `npm test` runs the Vitest suite (field arit
 ---
 
 _"Whether you eat or drink, or whatever you do, do all to the glory of God." — 1 Corinthians 10:31_
+
+<!-- pr-gate verification: no-op, branch is deleted after the run -->
