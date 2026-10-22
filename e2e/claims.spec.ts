@@ -300,7 +300,7 @@ async function openFp(page: Page): Promise<void> {
 const fpSel = (page: Page, which: 'P' | 'Q') =>
   page.locator(`#cl-panel-fp select[aria-label="Point ${which}"]`);
 
-test.describe('panel 2 — the same group law over 𝔽ₚ', () => {
+test.describe('panel 2 — addition over a distinct finite-field group', () => {
   test('opens on a prompt, and the point menu holds exactly the curve’s points', async ({
     page,
   }) => {

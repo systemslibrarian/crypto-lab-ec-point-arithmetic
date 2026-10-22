@@ -2,9 +2,8 @@
 //
 // Over ℝ: drag P and Q; the chord/tangent, third intersection, reflection, and
 // the algebra (λ, x₃, y₃) all update in the same frame. Over 𝔽_p: click two
-// lattice points; the SAME formulas run exactly in BigInt. One toggle switches
-// worlds, so "the geometry and the algebra are one group" lands without a second
-// mental model.
+// lattice points; the same formulas run exactly in BigInt. The toggle compares
+// two distinct groups whose operations have the same algebraic form.
 
 import { addConstruction, isSingular, rhs } from '../math/curve-real';
 import {
@@ -467,8 +466,9 @@ export function panelAdd(): HTMLElement {
   ]);
 
   const fpLatticeNote = el('p', { class: 'note' }, [
-    'Same group law — but every coordinate is reduced mod p, so the smooth curve becomes a ',
-    'scatter of points and the “line” wraps around. The algebra below is identical to the ℝ case.',
+    'The addition formulas have the same form, now with coordinates reduced mod p. These points ',
+    'form a different, finite group; the plotted “line” is a guide to modular arithmetic, not a ',
+    'smooth line over the reals.',
   ]);
 
   // secp256k1 numeric mode: preset point buttons + an explanatory note.

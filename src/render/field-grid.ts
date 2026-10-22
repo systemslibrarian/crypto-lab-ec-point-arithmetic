@@ -1,8 +1,8 @@
-// Canvas renderer for a curve over 𝔽_p as a finite lattice of points. Same group
-// law as the real plane, but the "line" through P and Q wraps around mod p, so
-// instead of a straight chord we highlight the collinear points and mark the
-// third intersection and its reflection — making "same algebra, wrapped picture"
-// visible. Small p only (the toggle hides this for secp256k1).
+// Canvas renderer for a curve over 𝔽_p as a finite lattice of points. Addition
+// has the same form of formulas as on a real curve, but defines a distinct finite
+// group. The line through P and Q is taken modulo p; we highlight its points,
+// the third intersection and its reflection. Small p only (the toggle hides
+// this for secp256k1).
 
 import { enumeratePoints } from '../math/curve-fp';
 import { mod, modInv } from '../math/field';

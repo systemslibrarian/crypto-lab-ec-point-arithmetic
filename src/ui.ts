@@ -19,16 +19,16 @@ export function initApp(root: HTMLElement): void {
       el('h1', { class: 'cl-hero-title' }, ['EC Point Arithmetic']),
       el('p', { class: 'cl-hero-sub' }, ['Group law · point addition · scalar multiplication']),
       el('p', { class: 'cl-hero-desc' }, [
-        'Add points with the chord-and-tangent rule and multiply by a scalar, over ' +
-          'the real plane and the identical algebra over a finite field 𝔽ₚ.',
+        'Add points and multiply by a scalar over the real plane or a finite field 𝔽ₚ. ' +
+          'The addition formulas have the same form, but these are different groups.',
       ]),
     ]),
     el('aside', { class: 'cl-hero-why', 'aria-label': 'Why it matters' }, [
       el('span', { class: 'cl-hero-why-label' }, ['WHY IT MATTERS']),
       el('p', { class: 'cl-hero-why-text' }, [
-        'This one-way group law powers ECDSA, EdDSA, and X25519 — the signatures and key ' +
-          'exchange securing TLS, SSH, and crypto wallets. Reversing scalar multiplication ' +
-          '(ECDLP) is infeasible, so keys stay tiny yet strong.',
+        'Elliptic-curve groups underlie ECDSA, EdDSA, and X25519, though their curve forms differ. ' +
+          'Point addition can be undone when a summand is known. In a suitable large subgroup, ' +
+          'recovering k from P and Q = k·P is the hard discrete-log problem (ECDLP).',
       ]),
     ]),
   ]);
