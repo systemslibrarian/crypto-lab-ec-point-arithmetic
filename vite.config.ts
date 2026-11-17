@@ -4,13 +4,13 @@ export default defineConfig({
   base: '/crypto-lab-ec-point-arithmetic/',
   server: {
     host: '0.0.0.0',
-    port: 4701,
+    port: 4630,
   },
   // Pin the preview server too. Without this block `vite preview` falls back to
   // its default port, which is shared fleet-wide — a harness could then attach
   // to a sibling lab's preview and report green against the wrong app.
   preview: {
-    port: 4701,
+    port: 4630,
     strictPort: true,
   },
   build: {
