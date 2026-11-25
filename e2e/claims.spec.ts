@@ -805,3 +805,29 @@ test.describe('panel 4 — why you cannot go backwards', () => {
     expect(secp[2]).toContain('2¹²⁸'); // half the exponent = √n
   });
 });
+
+test('a mistyped scalar never produces the point for a different number', async ({ page }) => {
+  await page.goto('.');
+  await ready(page);
+  const panel = page.locator('#scalar');
+  const field = kInput(page);
+  const card = panel.locator('.result-card');
+  const show = panel.getByRole('button', { name: 'Show all' });
+  await setK(page, '3');
+  await show.click();
+  await expect(card).toContainText('(10, 6)');
+  for (const input of ['-3', '1.5', '2e3', 'abc', '']) {
+    await field.fill(input);
+    await expect(field).toHaveAttribute('aria-invalid', 'true');
+    await expect(card).toHaveText('Enter a non-negative whole number in decimal.');
+    await expect(show).toBeDisabled();
+    await expect(panel.locator('.trace-row')).toHaveCount(0);
+    await expect(panel.locator('.cmp-card')).toHaveCount(0);
+  }
+  await field.fill('003');
+  await show.click();
+  await expect(card).toContainText('(10, 6)');
+  await field.fill('0');
+  await expect(card).toContainText('0 · G =');
+  await expect(card).toContainText('O (∞)');
+});

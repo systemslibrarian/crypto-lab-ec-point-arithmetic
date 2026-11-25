@@ -30,6 +30,7 @@ export function panelScalar(): HTMLElement {
     type: 'text',
     value: '9',
     'aria-label': 'Scalar k',
+    'aria-describedby': 'scalar-feedback',
     inputmode: 'numeric',
   }) as HTMLInputElement;
 
@@ -47,7 +48,12 @@ export function panelScalar(): HTMLElement {
       'current accumulator highlighted. The same values are reported as text in the result ' +
       'card and the trace below.',
   });
-  const resultCard = el('div', { class: 'result-card', role: 'status', 'aria-live': 'polite' });
+  const resultCard = el('div', {
+    id: 'scalar-feedback',
+    class: 'result-card',
+    role: 'status',
+    'aria-live': 'polite',
+  });
   const bitTape = el('div', { class: 'bit-tape' });
   const compare = el('div', { class: 'compare' });
   const traceBox = el('div', { class: 'trace' });
@@ -65,8 +71,24 @@ export function panelScalar(): HTMLElement {
 
   function recompute() {
     stopPlay();
-    const raw = kInput.value.trim().replace(/[^0-9]/g, '');
-    k = raw ? BigInt(raw) : 0n;
+    const raw = kInput.value.trim();
+    const valid = /^\d+$/.test(raw);
+    kInput.setAttribute('aria-invalid', String(!valid));
+    if (!valid) {
+      cursor = 0;
+      steps = [];
+      warn.hidden = true;
+      resultCard.className = 'result-card';
+      resultCard.textContent = 'Enter a non-negative whole number in decimal.';
+      traceBox.replaceChildren();
+      bitTape.replaceChildren();
+      compare.replaceChildren();
+      bitTape.hidden = true;
+      canvas.hidden = true;
+      for (const button of [stepBtn, playBtn, allBtn]) button.setAttribute('disabled', '');
+      return;
+    }
+    k = BigInt(raw);
     const G = preset.G;
     warn.hidden = true;
     if (!G) {
@@ -135,6 +157,12 @@ export function panelScalar(): HTMLElement {
         el('span', { class: 'rc-label' }, ['0 · G =']),
         el('span', { class: 'mono' }, [ptStr(null)]),
       );
+      return;
+    }
+    if (method === 'naive' && !naiveAllowed()) {
+      resultCard.className = 'result-card';
+      resultCard.textContent =
+        'Choose double-and-add or reduce k to step through this calculation.';
       return;
     }
     if (cursor === 0) {
@@ -259,6 +287,8 @@ export function panelScalar(): HTMLElement {
     }
 
     stepBtn.toggleAttribute('disabled', cursor >= steps.length);
+    playBtn.toggleAttribute('disabled', !steps.length);
+    allBtn.toggleAttribute('disabled', !steps.length && k !== 0n);
   }
 
   presetSel.addEventListener('change', () => {
@@ -269,7 +299,7 @@ export function panelScalar(): HTMLElement {
     method = methodSel.value as 'naive' | 'dbladd';
     recompute();
   });
-  kInput.addEventListener('change', () => recompute());
+  kInput.addEventListener('input', recompute);
 
   // One-click edge-case examples for scalar multiplication.
   const examples = el('div', { class: 'chips' }, [
